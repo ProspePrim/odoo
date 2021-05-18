@@ -1,0 +1,55 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app: postgre
+  name: postgre
+  namespace: odoo
+spec:
+  selector:
+    matchLabels:
+      app: postgre
+  serviceName: postgre
+  replicas: 1
+  template:
+    metadata:
+      annotations:
+        appuio.ch/backupcommand: pg_dumpall
+      labels:
+        app: postgre
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: postgre
+        image: postgres:10
+        env:
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        - name: POSTGRES_DB
+          value: postgres
+        - name: POSTGRES_PASSWORD
+          value: odoo
+        - name: PGPASSWORD
+          value: odoo
+        - name: POSTGRES_USER
+          value: odoo
+        - name: PGUSER
+          value: odoo
+        ports:
+        - containerPort: 5432
+          name: postgres
+        volumeMounts:
+        - name: postgre-data
+          mountPath: /var/lib/postgresql/data/pgdata
+  volumeClaimTemplates:
+  - metadata:
+      name: postgre-data
+      annotations:
+        appuio.ch/backup: "true"
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 200Gi
