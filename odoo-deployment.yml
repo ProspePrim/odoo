@@ -18,6 +18,8 @@ spec:
       labels:
         app: odoo
     spec:
+      imagePullSecrets:
+      - name: odooprimart
       containers:
       - env:
         - name: HOST
@@ -26,10 +28,8 @@ spec:
           value: odoo
         - name: USER
           value: odoo
-        image: odoo:13.0
+        image: primaart/odoo:eam_rs
         args:
-#        - --load=web,hw_proxy,hw_posbox_homepage,hw_posbox_upgrade,hw_scale,hw_scanner,hw_escpos,hw_blackbox_be,hw_screen,hw_drivers,hw_printer_network,website,project,kanban
-        - --init=website,hr_timesheet,website_crm,website_crm_sms,website_sms,website_sale,hr,hr_attendance,hr_recruitment,hr_expense,attachment_indexation,auth_signup,calendar_sms,contacts,event,hr_contract,hr_gamification,hr_holidays,hr_holidays_attendance,hr_holidays_calendar,hr_org_chart,hr_presence,hr_recruitment_survey,hr_skills,hr_skills_slides,hr_skills_survey,hr_timesheet_attendance,mail,mail_bot,sms,snailmail,snailmail_account,social_media,web,web_diagram,web_editor,web_kanban_gauge,website_event_track,website_form,website_form_project,website_livechat,website_mail,website_partner,website_payment,website_profile,website_rating,website_sale_stock,website_slides_forum,website_slides_survey,website_theme_install,web_tour,web_unsplash,survey,calendar,website_hr_recruitment,website_slides,website_forum,gamification,website_event,im_livechat,phone_validation
         imagePullPolicy: Always
         name: web
         ports:
@@ -54,10 +54,13 @@ spec:
           successThreshold: 1
           failureThreshold: 6
         volumeMounts:
-        - mountPath: /var/lib/odoo
-          name: odoo-data
+        - name: odoo-data
+          mountPath: /var/lib/odoo
         - name: odoo-addons-persistent-storage
           mountPath: /mnt/extra-addons
+        - name: odoo-conf
+          mountPath: /etc/odoo/odoo.conf
+          subPath: odoo.conf
       hostname: web
       restartPolicy: Always
       volumes:
@@ -67,3 +70,9 @@ spec:
       - name: odoo-addons-persistent-storage
         persistentVolumeClaim:
           claimName: odoo-addons-pv-claim
+      - name: odoo-conf
+        configMap:
+          name: odoo-conf
+          items:
+            - key: odoo.conf
+              path: odoo.conf
